@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+.venv/
+venv/
+env/
+
+# Env files — never commit secrets
+backend/.env
+
+# Database
+backend/adforge.db
+
+# Static generated content
+backend/static/campaigns/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.env
+
+# Terraform state — contains secrets
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

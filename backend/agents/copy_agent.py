@@ -18,6 +18,7 @@ BANNED PATTERNS — never produce these under any circumstance:
 5. Parallel Repetition Stacks: "More leads. More calls. More revenue." — banned. Every consecutive line must add new information, raise stakes, deepen implication, or move the argument forward. Never echo.
 6. Filler transitions: "Let's dive in", "Here's the thing", "At the end of the day" — banned.
 7. Hedging qualifiers: might, could potentially, often, usually, tends to, generally — banned. State things as facts. Use specific proof points.
+8. Double quote characters (") inside copy text — banned. In primary_text_variants, hook_sentences, headlines, ctas, and tiktok_slideshow_frames, never use the " character. Use single quotes (') for any quoted speech. Example: write She said 'I was terrified' — never She said "I was terrified". Unescaped double quotes break JSON.
 
 REQUIRED PATTERNS:
 - Open by entering the conversation already in the avatar's head at their awareness stage
@@ -84,10 +85,17 @@ Generate a complete copy package. Output valid JSON with exactly this structure:
         raw = re.sub(r"\n?```$", "", raw)
     try:
         return json.loads(raw)
-    except json.JSONDecodeError:
-        from json_repair import repair_json
-        logger.warning("Copy JSON malformed — attempting repair")
-        return json.loads(repair_json(raw))
+    except json.JSONDecodeError as e:
+        logger.warning(f"Copy JSON malformed ({e}) — attempting repair. First 300 chars of raw: {raw[:300]!r}")
+        try:
+            from json_repair import repair_json
+            repaired = repair_json(raw)
+            result = json.loads(repaired)
+            logger.info("Copy JSON repair succeeded")
+            return result
+        except Exception as repair_err:
+            logger.error(f"Copy JSON repair also failed: {repair_err}")
+            raise e  # raise original parse error so the fallback dict is populated correctly
 
 
 async def run_copy(state: dict) -> dict:

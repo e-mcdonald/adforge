@@ -31,8 +31,8 @@ Hook Direction: {strategy_angle.get('hook_direction', '')}
 Big Claim: {strategy_angle.get('big_claim', '')}
 Avatar: {avatar.get('name', '')} — {avatar.get('age_demo', '')}
 
-Best Headline: {angle_copy.get('headlines', [''])[0]}
-Primary Text (excerpt): {(angle_copy.get('primary_text_variants', [''])[0])[:400]}
+Best Headline: {(angle_copy.get('headlines') or [''])[0]}
+Primary Text (excerpt): {(angle_copy.get('primary_text_variants') or [''])[0][:400]}
 
 Generate a creative brief. Output valid JSON:
 {{
@@ -58,7 +58,12 @@ Generate a creative brief. Output valid JSON:
     if raw.startswith("```"):
         raw = re.sub(r"^```(?:json)?\n?", "", raw)
         raw = re.sub(r"\n?```$", "", raw)
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        from json_repair import repair_json
+        logger.warning("Creative brief JSON malformed — attempting repair")
+        return json.loads(repair_json(raw))
 
 
 async def run_creative_brief(state: dict) -> dict:
@@ -76,6 +81,16 @@ async def run_creative_brief(state: dict) -> dict:
     for i, copy_angle in enumerate(copy_angles):
         strategy_angle = strategy_angles[i] if i < len(strategy_angles) else {}
         logger.info(f"  Creative brief for Angle {i+1}: {copy_angle.get('angle_name', '')}")
+
+        # Skip if copy generation already failed for this angle
+        if copy_angle.get("error"):
+            logger.warning(f"  Skipping brief for angle {i+1} — copy failed: {copy_angle['error']}")
+            briefs.append({
+                "angle_name": copy_angle.get("angle_name", f"Angle {i+1}"),
+                "error": f"Skipped — copy generation failed: {copy_angle['error']}",
+            })
+            continue
+
         try:
             brief = await _brief_for_angle(copy_angle, strategy_angle, state, llm)
             briefs.append(brief)

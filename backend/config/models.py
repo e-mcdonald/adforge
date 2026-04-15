@@ -9,18 +9,21 @@ MODEL_CONFIG = {
         "provider": "anthropic",
         "model": "claude-sonnet-4-5",
         "temperature": 0.3,
+        "max_tokens": 2048,
         "description": "VoC synthesis, insight generation, pattern recognition",
     },
     "strategy": {
         "provider": "anthropic",
         "model": "claude-sonnet-4-5",
         "temperature": 0.5,
+        "max_tokens": 2048,
         "description": "Angle strategy, awareness mapping, hook direction",
     },
     "copy": {
         "provider": "anthropic",
         "model": "claude-opus-4-5",
         "temperature": 0.7,
+        "max_tokens": 4096,
         "description": "Ad copy — highest quality required, revenue-generating output",
     },
     "creative_brief": {

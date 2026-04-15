@@ -54,13 +54,17 @@ def get_llm(task: str, override_model: Optional[str] = None, use_local: bool = T
     """
     if override_model:
         provider = _infer_provider(override_model)
-        cfg = {"model": override_model, "temperature": 0.7}
+        cfg = {"model": override_model, "temperature": 0.7, "max_tokens": 4096}
     else:
         if task not in MODEL_CONFIG:
             raise ValueError(f"Unknown task: {task}. Valid tasks: {list(MODEL_CONFIG.keys())}")
         task_cfg = MODEL_CONFIG[task]
         provider = task_cfg["provider"]
-        cfg = {"model": task_cfg["model"], "temperature": task_cfg["temperature"]}
+        cfg = {
+            "model": task_cfg["model"],
+            "temperature": task_cfg["temperature"],
+            "max_tokens": task_cfg.get("max_tokens", 2048),
+        }
 
         # Local model handling
         if provider == "ollama":
@@ -86,6 +90,7 @@ def get_llm(task: str, override_model: Optional[str] = None, use_local: bool = T
         return ChatAnthropic(
             model=cfg["model"],
             temperature=cfg["temperature"],
+            max_tokens=cfg["max_tokens"],
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
         )
     elif provider == "openai":
@@ -93,6 +98,7 @@ def get_llm(task: str, override_model: Optional[str] = None, use_local: bool = T
         return ChatOpenAI(
             model=cfg["model"],
             temperature=cfg["temperature"],
+            max_tokens=cfg["max_tokens"],
             openai_api_key=os.getenv("OPENAI_API_KEY"),
         )
     elif provider == "ollama":

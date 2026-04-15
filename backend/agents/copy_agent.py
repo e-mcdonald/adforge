@@ -82,7 +82,12 @@ Generate a complete copy package. Output valid JSON with exactly this structure:
     if raw.startswith("```"):
         raw = re.sub(r"^```(?:json)?\n?", "", raw)
         raw = re.sub(r"\n?```$", "", raw)
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        from json_repair import repair_json
+        logger.warning("Copy JSON malformed — attempting repair")
+        return json.loads(repair_json(raw))
 
 
 async def run_copy(state: dict) -> dict:
